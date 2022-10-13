@@ -111,8 +111,8 @@ where
     #[allow(unused)]
     fn get_bounds_internal(&self) -> Vec<Rect> {
         let mut result: Vec<Rect> = vec![self.bounds];
-        if let Some(box_inner_trees) = &self.inner_trees {
-            let inner_trees = &**box_inner_trees;
+        if let Some(boxed_inner_trees) = &self.inner_trees {
+            let inner_trees = &**boxed_inner_trees;
             for x in inner_trees.iter() {
                 result.append(&mut x.get_bounds_internal());
                 // println!("{:?}", result);
@@ -121,13 +121,23 @@ where
         result
     }
 
+    // Get the quadtree leaves that a line intersects with
     #[allow(unused)]
-    fn get_intersecting_bounds() -> Vec<QuadTree<T>> {
-        todo!()
-    }
+    pub fn get_intersecting_bounds(&self, l: &Line) -> Vec<QuadTree<T>> {
+        let mut res: Vec<QuadTree<T>> = vec![];
 
-    fn get_intersecting_bounds_internal() -> Vec<QuadTree<T>> {
-        todo!()
+        // Unbox the trees so we can use them
+        if let Some(boxed_inner_trees) = &self.inner_trees {
+            let inner_trees = &**boxed_inner_trees;
+            for x in inner_trees.iter() {
+
+                // For the bounds we intersect recur this function
+                if let Some(_) = l.linerect_intersect(x.bounds) {
+                    res.append(&mut QuadTree::get_intersecting_bounds(&x, l));
+                }
+            }
+        }
+        res
     }
 
     // Get the objects inside this structure
@@ -273,13 +283,14 @@ impl HasPosition for Vec2 {
     }
 }
 
-struct Line {
+// Mostly an internal struct used to calculate casts from A to B
+pub struct Line {
     origin: Vec2,
     end: Vec2,
 }
 
 impl Line {
-    fn new(x1: f32, y1: f32, x2: f32, y2: f32) -> Line {
+    pub fn new(x1: f32, y1: f32, x2: f32, y2: f32) -> Line {
         Line { 
             origin: Vec2 { x: x1, y: y1 }, 
             end: Vec2 { x: x2, y: y2 },
@@ -313,7 +324,7 @@ impl Line {
         d1 / d2
     }
 
-    fn lineline_intersect(&self, l2: Line) -> Option<Vec2> {
+    fn lineline_intersect(&self, l2: &Line) -> Option<Vec2> {
         let ua = self.ua(&l2);
         let ub = self.ub(&l2);
         // lines are colliding if ua and ub are within [0, 1]
@@ -327,15 +338,15 @@ impl Line {
     }
 
     #[allow(unused)]
-    fn linerect_intersect_points(&self, r: Rect) -> Option<Vec<Vec2>> {
+    fn linerect_intersect(&self, r: Rect) -> Option<Vec<Vec2>> {
         let left: Option<Vec2> = self.lineline_intersect(
-            Line::new(r.pos.x, r.pos.y, r.pos.x, r.pos.y + r.size.y));
+            &Line::new(r.pos.x, r.pos.y, r.pos.x, r.pos.y + r.size.y));
         let right: Option<Vec2> = self.lineline_intersect(
-            Line::new(r.pos.x + r.size.x, r.pos.y, r.pos.x, r.pos.y + r.size.y));
+            &Line::new(r.pos.x + r.size.x, r.pos.y, r.pos.x, r.pos.y + r.size.y));
         let top: Option<Vec2> = self.lineline_intersect(
-            Line::new(r.pos.x, r.pos.y, r.pos.x + r.size.x, r.pos.y));
+            &Line::new(r.pos.x, r.pos.y, r.pos.x + r.size.x, r.pos.y));
         let bottom: Option<Vec2> = self.lineline_intersect(
-            Line::new(r.pos.x, r.pos.y + r.size.y, r.pos.x + r.size.x, r.pos.y + r.size.y));
+            &Line::new(r.pos.x, r.pos.y + r.size.y, r.pos.x + r.size.x, r.pos.y + r.size.y));
         todo!();
         None
     }
