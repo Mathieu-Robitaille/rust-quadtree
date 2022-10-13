@@ -1,0 +1,17 @@
+[package]
+name = "rust-quadtree"
+version = "0.1.0"
+edition = "2021"
+
+[target.x86_64-pc-windows-msvc]
+linker = "rust-lld.exe"
+rustflags = ["-Zshare-generics=off"]
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+glam = "*"
+rand = "*"
+bevy = "*"
+bevy_prototype_lyon = "*"
+itertools = "*"
