@@ -105,7 +105,9 @@ fn quadtree_init() -> QuadTree<Vec2> {
     /* generate DOTS random points */
     for _ in 1..DOTS {
         let (x, y) = (rng.gen_range(0.0..W), rng.gen_range(0.0..H));
-        t.insert(Vec2 { x, y });
+        if let Err(e) = t.insert(Vec2 { x, y }) {
+            panic!("{e}")
+        }
     }
     t
 }

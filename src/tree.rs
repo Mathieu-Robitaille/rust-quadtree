@@ -45,9 +45,9 @@ where
     // Attempt to insert a point into the quadtree structure
     // return false if it cannot be inserted for any reason
     #[allow(unused)]
-    pub fn insert(&mut self, p: T) -> bool {
+    pub fn insert(&mut self, p: T) -> Result<(), &'static str> {
         if !self.bounds.contains(&p) {
-            return false;
+            return Err("The point does not exist in the bounds");
         }
         match (self.points.as_mut(), self.inner_trees.as_mut()) {
             // this tree itself contains points
@@ -55,21 +55,24 @@ where
                 if val.len() == CAPACITY - 1 || val.len() >= CAPACITY {
                     val.push(p);
                     self.subdivide();
-                    return true;
+                    Ok(())
                 } else {
                     val.push(p);
-                    return true;
+                    Ok(())
                 }
             }
             // This tree contains subtrees but no points
             (None, Some(val)) => {
                 let x = &mut **val;
-                return x.iter_mut().any(|x| x.insert(p));
+                if x.iter_mut().any(|x| x.insert(p).is_ok()) {
+                    return Ok(());
+                }
+                Err("This point doesnt belong in any subtrees.")
             }
             // This tree has nothing cool about it
             (None, None) => {
                 self.points = Some(vec![p]);
-                return true;
+                Ok(())
             }
             _ => {
                 panic!("HOW DID WE GET HERE")
@@ -137,7 +140,7 @@ where
             let inner_trees = &**boxed_inner_trees;
             for x in inner_trees.iter() {
                 // For the bounds we intersect recur this function
-                if let Some(_) = l.linerect_intersect(x.bounds) {
+                if l.linerect_intersect(x.bounds).is_some() {
                     res.append(&mut QuadTree::get_intersecting_bounds(x, l));
                 }
             }
@@ -295,7 +298,7 @@ impl Rect {
                 .copied()
                 .collect::<Vec<T>>();
         }
-        return vec![];
+        vec![]
     }
 }
 
