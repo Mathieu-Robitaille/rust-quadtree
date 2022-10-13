@@ -352,14 +352,14 @@ impl Line {
 
     fn ua(&self, l2: &Line) -> f32 {
         let d1: f32 = Mat2::from_cols(l2.end - l2.origin, self.origin - l2.origin).determinant();
-        let d2: f32 = Mat2::from_cols(l2.end - self.origin, l2.end - l2.origin).determinant();
-        d1 / d2
+        let d2: f32 = Mat2::from_cols(l2.end - l2.origin, self.end - self.origin).determinant();
+        -(d1 / d2)
     }
 
     fn ub(&self, l2: &Line) -> f32 {
         let d1: f32 =
             Mat2::from_cols(self.end - self.origin, self.origin - l2.origin).determinant();
-        let d2: f32 = Mat2::from_cols(self.end - self.origin, l2.end - l2.origin).determinant();
+        let d2: f32 = Mat2::from_cols(l2.end - l2.origin, self.end - self.origin).determinant();
         d1 / d2
     }
 
@@ -369,8 +369,8 @@ impl Line {
         // lines are colliding if ua and ub are within [0, 1]
         if (0.0..=1.0).contains(&ua) && (0.0..=1.0).contains(&ub) {
             return Some(Vec2 {
-                x: self.origin.x + (ub * self.b()),
-                y: self.origin.y + (ub * self.a()),
+                x: self.origin.x + (ua * self.b()),
+                y: self.origin.y + (ua * self.a()),
             });
         }
         None
@@ -448,9 +448,10 @@ mod tests {
         assert_eq!(
             Line::lineline_intersect(&l1, &l2).unwrap(),
             Vec2 {
-                x: -1.364,
-                y: 1.364
+                x: -1.363636,
+                y: 1.363636
             }
         );
     }
+
 }
