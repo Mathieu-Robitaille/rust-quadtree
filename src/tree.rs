@@ -65,6 +65,10 @@ where
                 if x.iter_mut().any(|x| x.insert(p).is_ok()) {
                     return Ok(());
                 }
+                println!("Point: {:?}", p);
+                for y in x.iter() {
+                    println!("{:?}", y.bounds);
+                }
                 Err("This point doesnt belong in any subtrees.")
             }
             // This tree has nothing cool about it
@@ -108,30 +112,22 @@ where
     #[allow(unused)]
     pub fn get_bounds(&self) -> Vec<Rect> {
         let mut result: Vec<Rect> = vec![];
-        result.push(self.bounds);
-        result.append(&mut self.get_bounds_internal());
-        result
-    }
-
-    #[allow(unused)]
-    fn get_bounds_internal(&self) -> Vec<Rect> {
-        let mut result: Vec<Rect> = vec![self.bounds];
-
-        // Unbox the trees so we can use them
         if let Some(boxed_inner_trees) = &self.inner_trees {
             let inner_trees = &**boxed_inner_trees;
             for x in inner_trees.iter() {
-                result.append(&mut x.get_bounds_internal());
-                // println!("{:?}", result);
+                // For the bounds we intersect recur this function
+                result.append(&mut QuadTree::get_bounds(x));
             }
+        } else if let Some(internal_bounds) = &self.points {
+            result.push(self.bounds);
         }
         result
     }
 
     // Get the quadtree leaves that a line intersects with
     #[allow(unused)]
-    pub fn get_intersecting_bounds(&self, l: &Line) -> Vec<QuadTree<T>> {
-        let mut res: Vec<QuadTree<T>> = vec![];
+    pub fn get_intersecting_bounds(&self, l: &Line) -> Vec<&QuadTree<T>> {
+        let mut res: Vec<&QuadTree<T>> = vec![];
 
         // Unbox the trees so we can use them
         if let Some(boxed_inner_trees) = &self.inner_trees {
@@ -142,6 +138,10 @@ where
                     res.append(&mut QuadTree::get_intersecting_bounds(x, l));
                 }
             }
+        }
+        // this should return the lowest level leaf colliding with the line
+        else if l.linerect_intersect(&self.bounds).is_ok() {
+            res.push(self)
         }
         res
     }
@@ -223,7 +223,7 @@ where
         let r4 = Rect {
             pos: Vec2 {
                 x: self.bounds.pos.x + half_w,
-                y: self.bounds.pos.y + half_w,
+                y: self.bounds.pos.y + half_h,
             },
             size: Vec2 {
                 x: half_w,
@@ -317,8 +317,8 @@ impl HasPosition for Vec2 {
 
 // Mostly an internal struct used to calculate casts from A to B
 pub struct Line {
-    origin: Vec2,
-    end: Vec2,
+    pub origin: Vec2,
+    pub end: Vec2,
 }
 
 #[allow(unused)]
@@ -376,7 +376,7 @@ impl Line {
     fn lineline_intersect(&self, l2: &Line) -> Result<Vec2, &str> {
         let ua = self.ua(l2);
         let ub = self.ub(l2);
-        println!("{:?} {:?}", ua, ub);
+        // println!("{:?} {:?}", ua, ub);
         // lines are colliding if ua and ub are within [0, 1]
         if (0.0..=1.0).contains(&ua) && (0.0..=1.0).contains(&ub) {
             let intersection_point = Vec2 {
@@ -514,6 +514,19 @@ mod tests {
                 y: 1.363636
             }
         );
+    }
+
+    #[test]
+    fn rect_contains_1() {
+        let p = Vec2 {
+            x: 640.0831,
+            y: 292.49387,
+        };
+        let r = Rect {
+            pos: Vec2 { x: 400.0, y: 400.0 },
+            size: Vec2 { x: 400.0, y: 200.0 },
+        };
+        assert!(r.contains(&p));
     }
 
     // #[test]
