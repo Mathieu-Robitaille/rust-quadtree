@@ -1,14 +1,14 @@
+mod structs;
 mod tree;
 
-use crate::tree::{HasPosition, Line, QuadTree, Rect};
+use crate::{
+    structs::{Line, Rect},
+    tree::QuadTree,
+};
 use bevy::prelude::*;
 use bevy_prototype_lyon::prelude::*;
 use glam::Vec2;
 use rand::Rng;
-use std::{
-    fmt::Debug,
-    time::Instant,
-};
 
 const W: f32 = 1200.0;
 const H: f32 = 700.0;
@@ -33,23 +33,11 @@ fn main() {
 }
 
 fn setup_system(mut commands: Commands) {
-    let mut now = Instant::now();
     let t = quadtree_init();
-    println!("Init took: {:?} micro seconds", now.elapsed().as_micros());
+    // println!("Init took: {:?} micro seconds", now.elapsed().as_micros());
 
-    now = Instant::now();
     let mut bounds: Vec<Rect> = t.get_bounds();
-    println!(
-        "Getting bounds took: {:?} micro seconds",
-        now.elapsed().as_micros()
-    );
-
-    now = Instant::now();
     let points: Vec<Vec2> = t.get_positions();
-    println!(
-        "Getting positions took: {:?} micro seconds",
-        now.elapsed().as_micros()
-    );
 
     bounds.sort_by(|a, b| a.area().partial_cmp(&b.area()).unwrap());
     bounds.reverse();
@@ -129,21 +117,6 @@ fn setup_system(mut commands: Commands) {
         }),
         Transform::default(),
     ));
-
-    // let shape = shapes::Circle {
-    //     center: Vec2 { x: 0.0, y: 0.0 },
-    //     radius: 2.0,
-    // };
-
-    // commands.spawn_bundle(GeometryBuilder::build_as(
-    //     &shape,
-    //     DrawMode::Stroke(StrokeMode {
-    //         options: StrokeOptions::default(),
-    //         color: Color::GREEN,
-    //     }),
-    //     Transform::default(),
-    // ));
-
     commands.spawn_bundle(Camera2dBundle::default());
 }
 
@@ -167,14 +140,6 @@ fn quadtree_init() -> QuadTree<Vec2> {
         }
     }
     t
-}
-
-#[allow(unused)]
-fn redraw<T>(_t: QuadTree<T>)
-where
-    T: HasPosition + Copy + Debug,
-{
-    unimplemented!();
 }
 
 #[allow(unused)]
