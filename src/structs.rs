@@ -50,6 +50,7 @@ impl HasPosition for Rect {
     }
 }
 
+#[derive(Component)]
 pub struct Line {
     pub origin: Vec2,
     pub end: Vec2,

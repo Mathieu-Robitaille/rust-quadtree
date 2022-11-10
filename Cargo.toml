@@ -12,6 +12,6 @@ rustflags = ["-Zshare-generics=off"]
 [dependencies]
 glam = "*"
 rand = "*"
-bevy = "*"
-bevy_prototype_lyon = "*"
+bevy = "0.8"
+bevy_prototype_lyon = "0.6"
 itertools = "*"

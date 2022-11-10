@@ -1,8 +1,10 @@
 mod structs;
 mod tree;
 
+use std::fmt::Debug;
+
 use crate::{
-    structs::{Line, Rect},
+    structs::{Line, Rect, HasPosition},
     tree::QuadTree,
 };
 use bevy::prelude::*;
@@ -14,6 +16,9 @@ const W: f32 = 1200.0;
 const H: f32 = 700.0;
 const A: f32 = H * W;
 const DOTS: usize = 1000;
+const RECT_DEPTH: f32 = 1.0;
+const POINT_DEPTH: f32 = 2.0;
+const LINE_DEPTH: f32 = 3.0;
 
 const OFFSET_VEC: Vec2 = Vec2 {
     x: W / 2.0,
@@ -30,6 +35,11 @@ fn main() {
         .add_plugin(ShapePlugin)
         .add_startup_system(setup_system)
         .run();
+}
+
+fn draw_shapes(query: Query<&QuadTree<Vec2>>) 
+{
+
 }
 
 fn setup_system(mut commands: Commands) {
@@ -52,7 +62,7 @@ fn setup_system(mut commands: Commands) {
         let transform_vec = Vec3 {
             x: bound.pos.x - OFFSET_VEC.x,
             y: bound.pos.y - OFFSET_VEC.y,
-            z: 0.0,
+            z: RECT_DEPTH,
         };
 
         commands.spawn_bundle(GeometryBuilder::build_as(
@@ -80,7 +90,7 @@ fn setup_system(mut commands: Commands) {
         let transform_vec = Vec3 {
             x: tree.bounds.pos.x - OFFSET_VEC.x,
             y: tree.bounds.pos.y - OFFSET_VEC.y,
-            z: 0.0,
+            z: RECT_DEPTH,
         };
 
         commands.spawn_bundle(GeometryBuilder::build_as(
@@ -99,15 +109,21 @@ fn setup_system(mut commands: Commands) {
             radius: 1.0,
         };
 
+        let mut transform_vec = Transform::default();
+        transform_vec.translation.z = POINT_DEPTH;
+
         commands.spawn_bundle(GeometryBuilder::build_as(
             &shape,
             DrawMode::Stroke(StrokeMode {
                 options: StrokeOptions::default(),
                 color: Color::RED,
             }),
-            Transform::default(),
+            transform_vec,
         ));
     }
+
+    let mut line_transform_vec = Transform::default();
+    line_transform_vec.translation.z = LINE_DEPTH;
 
     commands.spawn_bundle(GeometryBuilder::build_as(
         &line,
@@ -115,7 +131,7 @@ fn setup_system(mut commands: Commands) {
             options: StrokeOptions::default(),
             color: Color::RED,
         }),
-        Transform::default(),
+        line_transform_vec,
     ));
     commands.spawn_bundle(Camera2dBundle::default());
 }

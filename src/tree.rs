@@ -1,5 +1,6 @@
-use glam::Vec2;
 use std::fmt::Debug;
+use glam::Vec2;
+use bevy::prelude::Component;
 
 use crate::structs::{HasPosition, Line, Rect};
 
@@ -7,6 +8,7 @@ const CAPACITY: usize = 4;
 
 // https://www.topcoder.com/thrive/articles/Geometry%20Concepts%20part%202:%20%20Line%20Intersection%20and%20its%20Applications
 
+#[derive(Component)]
 pub struct QuadTree<T>
 where
     T: HasPosition + Copy + Debug,
